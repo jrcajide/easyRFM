@@ -1,7 +1,12 @@
 #'Automatic RFM amalysis
 #'
+#'@examples
+#'data <- rfm_generate_data(date_type = "POSIXct")
+#'result <- rfm_auto(data)
+#'result
+#'
 #'@export
-rfm_auto <- function(data, id="id", payment="payment", date="date", breaks=c(r=5, f=5, m=5), to_text=" to ") {
+rfm_auto <- function(data, id="id", payment="payment", date="date", breaks=c(r=5, f=5, m=5), to_text=" to ", exact=FALSE, tz=Sys.timezone()) {
   if(is.list(breaks)) {
     breaks <- c(r=breaks[["r"]], f=breaks[["f"]], m=breaks[["m"]])
   } else if(is.vector(breaks) && is.numeric(breaks)) {
@@ -15,6 +20,7 @@ rfm_auto <- function(data, id="id", payment="payment", date="date", breaks=c(r=5
   
   dots <- list(sprintf("max(%s)", date), ~n(), sprintf("sum(%s)", payment))
   rfm <- data %>% 
+    mutate(date=as.POSIXct(date %>% as.character, tz=tz)) %>%
     group_by_(.dots = id) %>%
     summarise_(.dots = setNames(dots, c("Recency", "Frequency", "Monetary")))
   
@@ -22,12 +28,21 @@ rfm_auto <- function(data, id="id", payment="payment", date="date", breaks=c(r=5
   f_breaks <- rfm_compute_breaks(rfm$Frequency, breaks["f"])
   m_breaks <- rfm_compute_breaks(rfm$Monetary,  breaks["m"])
   
+  max.date <- max(r_breaks)
+  if(!exact) {
+#     r_breaks <- rfm_pretty_breaks(r_breaks - max.date)
+    f_breaks <- rfm_pretty_breaks(f_breaks)
+    m_breaks <- rfm_pretty_breaks(m_breaks)
+  }
+  
   lower_breaks <- function(breaks) {
     c(breaks[1], breaks[-c(1,length(breaks))] + 1)
   }
   
   r_class <- paste(lower_breaks(r_breaks), r_breaks[-1], sep=to_text)
-  f_class <- Map(function(upper, count) ifelse(count == 1, upper, paste(upper - count + 1, upper, sep=to_text)) , f_breaks[-1], diff(f_breaks)) %>% unlist
+  f_class <- Map(function(upper, count) {
+      ifelse(count == 1, upper, paste(upper - count + 1, upper, sep=to_text)) 
+    }, f_breaks[-1], diff(f_breaks)) %>% unlist
   m_class <- paste(lower_breaks(m_breaks), m_breaks[-1], sep=to_text)
   
   r <- cut(rfm$Recency,   r_breaks) %>% as.numeric

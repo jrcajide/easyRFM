@@ -3,7 +3,7 @@
 \alias{rfm_generate_data}
 \title{Generate sample data for RFM analysis}
 \usage{
-rfm_generate_data(id.num = 100, date = c("char", "Date", "POSIXct",
+rfm_generate_data(id_num = 1000, date_type = c("char", "Date", "POSIXct",
   "POSIXlt"), seed, ...)
 }
 \description{
