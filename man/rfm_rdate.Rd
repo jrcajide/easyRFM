@@ -3,8 +3,8 @@
 \alias{rfm_rdate}
 \title{Generate random Date sequence}
 \usage{
-rfm_rdate(n, begin = as.Date("2014-12-01"), end = as.Date("2014-12-31"),
-  by = "days")
+rfm_rdate(n, begin = as.Date("2014-12-01"), end = as.Date("2015-01-01"),
+  by = "days", tz = Sys.timezone())
 }
 \description{
 Generate random Date sequence
