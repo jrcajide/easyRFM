@@ -28,15 +28,21 @@ rfm_auto <- function(data, id="id", payment="payment", date="date", breaks=c(r=5
   f_breaks <- rfm_compute_breaks(rfm$Frequency, breaks["f"])
   m_breaks <- rfm_compute_breaks(rfm$Monetary,  breaks["m"])
   
-  max.date <- max(r_breaks)
+  max_date <- max(r_breaks)
   if(!exact) {
-#     r_breaks <- rfm_pretty_breaks(r_breaks - max.date)
+    r_breaks_date <- r_breaks %>% as.Date(tz=tz)
+    r_breaks_date <- c(r_breaks_date[1], Map(function(d) d+1, r_breaks_date[-1]) %>% unlist)
+    r_breaks <- r_breaks_date %>% as.character %>% as.POSIXct(tz=tz)
     f_breaks <- rfm_pretty_breaks(f_breaks)
     m_breaks <- rfm_pretty_breaks(m_breaks)
   }
   
   lower_breaks <- function(breaks) {
     c(breaks[1], breaks[-c(1,length(breaks))] + 1)
+  }
+
+  upper_breaks <- function(breaks) {
+    c(breaks[1], breaks[-c(1,length(breaks))] - 1)
   }
   
   r_class <- paste(lower_breaks(r_breaks), r_breaks[-1], sep=to_text)
@@ -45,11 +51,17 @@ rfm_auto <- function(data, id="id", payment="payment", date="date", breaks=c(r=5
     }, f_breaks[-1], diff(f_breaks)) %>% unlist
   m_class <- paste(lower_breaks(m_breaks), m_breaks[-1], sep=to_text)
   
-  r <- cut(rfm$Recency,   r_breaks) %>% as.numeric
-  f <- cut(rfm$Frequency, f_breaks) %>% as.numeric
-  m <- cut(rfm$Monetary,  m_breaks) %>% as.numeric
+  r <- cut(rfm$Recency,   r_breaks, include.lowest=TRUE) %>% as.numeric
+  f <- cut(rfm$Frequency, f_breaks, include.lowest=TRUE) %>% as.numeric
+  m <- cut(rfm$Monetary,  m_breaks, include.lowest=TRUE) %>% as.numeric
+  
+  r_breaks_date <- as.Date(r_breaks, tz=tz)
+  r_breaks_days <- difftime(max(r_breaks_date), r_breaks_date, units="days")
+  r_class_days <- paste(upper_breaks(r_breaks_days), r_breaks_days[-1], sep=to_text)
   
   list(rfm=data.frame(rfm, RecencyClass=r, FrequencyClass=f, MonetaryClass=m), 
-       recency_breaks=r_breaks, frequency_breaks=f_breaks, monetary_breaks=m_breaks,
-       recency_class=r_class, frequency_class=f_class, monetary_class=m_class)
+       breaks=list(recency_breaks=r_breaks, recency_breaks_days=r_breaks_days,
+       frequency_breaks=f_breaks, monetary_breaks=m_breaks),
+       classes=list(recency_class=r_class, recency_class_days=r_class_days,
+       frequency_class=f_class, monetary_class=m_class))
 }
