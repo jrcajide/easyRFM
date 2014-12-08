@@ -4,7 +4,7 @@
 \title{Generate random dateteime sequence}
 \usage{
 rfm_rdatetime(n, begin = as.POSIXct("2014-12-01", tz = Sys.timezone()),
-  end = as.POSIXct("2014-12-31", tz = Sys.timezone()))
+  end = as.POSIXct("2015-01-01", tz = Sys.timezone()))
 }
 \description{
 Generate random dateteime sequence
