@@ -4,12 +4,17 @@
 #'@export
 rfm_pretty_breaks <- function(breaks) {
   digits <- floor(log10(breaks))
-  Map(function(break_, digit) {
+  head <- ifelse(digits[1] <= 0, floor(breaks[1]), {
+    base <- 10 ^ (digits[1] - 1)
+    floor(breaks[1] / base) * base
+  })
+  tail <- Map(function(break_, digit) {
     if(digit <= 0) {
-      round(break_)
+      ceiling(break_)
     } else {
       base <- 10 ^ (digit - 1)
-      round(break_ / base) * base
+      ceiling(break_ / base) * base
     }
-  }, breaks, digits) %>% unlist
+  }, breaks[-1], digits[-1]) %>% unlist
+  c(head, tail)
 }
