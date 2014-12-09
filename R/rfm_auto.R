@@ -20,14 +20,20 @@ rfm_auto <- function(data, id="id", payment="payment", date="date",
   }
   if(length(breaks) != 3) stop()
   
+  is.Date <- function(x) is(x, "Date")
+  is.POSIXlt <- function(x) is(x, "POSIXlt")
+  
   if(!missing(date_format) && is.character(data[,date]))
-    data[,date] <- strptime(data[,date], format = format, tz = tz)
+    data[,date] <- strptime(data[,date], format = date_format, tz = tz) %>% as.POSIXct
+  if(is.Date(data[,date]))
+    data[,date] <- as.character(data[,date])
+  if(is.character(data[,date]) || is.POSIXlt(data[,date]))
+    data[,date] <- as.POSIXct(data[,date], tz = tz)
   
   dots <- list(sprintf("max(%s)", date), ~n(), sprintf("sum(%s)", payment))
-  rfm <- data %>% 
-    mutate(date=as.POSIXct(date %>% as.character, tz=tz)) %>%
+  rfm <- data %>%
     group_by_(.dots = id) %>%
-    summarise_(.dots = setNames(dots, c("Recency", "Frequency", "Monetary")))
+    summarise_(.dots = dots %>% setNames(c("Recency", "Frequency", "Monetary")))
   
   r_breaks <- rfm_compute_breaks(rfm$Recency,   breaks["r"])
   f_breaks <- rfm_compute_breaks(rfm$Frequency, breaks["f"])
@@ -45,15 +51,15 @@ rfm_auto <- function(data, id="id", payment="payment", date="date",
   lower_breaks <- function(breaks) {
     c(breaks[1], breaks[-c(1,length(breaks))] + 1)
   }
-
+  
   upper_breaks <- function(breaks) {
     c(breaks[1], breaks[-c(1,length(breaks))] - 1)
   }
   
   r_class <- paste(lower_breaks(r_breaks), r_breaks[-1], sep=to_text)
   f_class <- Map(function(upper, count) {
-      ifelse(count == 1, upper, paste(upper - count + 1, upper, sep=to_text)) 
-    }, f_breaks[-1], diff(f_breaks)) %>% unlist
+    ifelse(count == 1, upper, paste(upper - count + 1, upper, sep=to_text)) 
+  }, f_breaks[-1], diff(f_breaks)) %>% unlist
   m_class <- paste(lower_breaks(m_breaks), m_breaks[-1], sep=to_text)
   
   r <- cut(rfm$Recency,   r_breaks, include.lowest=TRUE) %>% as.numeric
