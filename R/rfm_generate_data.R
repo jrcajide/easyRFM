@@ -21,5 +21,5 @@ rfm_generate_data <- function(id_num=1000,
     date <- rfm_rdatetime(n, ...)
   }
   
-  data_frame(id=ids, payment=payment, date=date)
+  data_frame(id=ids, payment=payment, date=date) %>% data.frame
 }
