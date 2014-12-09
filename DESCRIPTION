@@ -8,6 +8,7 @@ Maintainer: Koji MAKIYAMA <hoxo.smile@gmail.com>
 Description: An easy way to RFM analysis by R
 License: MIT
 Suggests:
-    testthat
+    testthat,
+    stringr
 Imports:
     dplyr
