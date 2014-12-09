@@ -7,7 +7,7 @@ output:
 ---
 
 ```{r, echo=FALSE}
-knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE, comment="")
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
 ```
 
 ## Overview
@@ -43,7 +43,7 @@ Then you can execute RFM analysis by a simple command:
 result <- rfm_auto(data)
 ```
 
-The result contains three components.
+The result contains four elements.
 
 `result$rfm` is which class each user was assigned.
 
@@ -78,7 +78,7 @@ devtools::install_github("hoxo-m/easyRFM")
 
 ## Try it with sample data
 
-easyRFM package provide `rfm_generate_data()` function towords to generate sample data for `rfm_auto()`:
+easyRFM package provide `rfm_generate_data()` function to generate sample data for `rfm_auto()`:
 
 ```{r}
 data <- rfm_generate_data()
