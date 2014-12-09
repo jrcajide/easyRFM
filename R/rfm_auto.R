@@ -6,7 +6,9 @@
 #'result
 #'
 #'@export
-rfm_auto <- function(data, id="id", payment="payment", date="date", breaks=c(r=5, f=5, m=5), to_text=" to ", exact=FALSE, tz=Sys.timezone()) {
+rfm_auto <- function(data, id="id", payment="payment", date="date", 
+                     breaks=c(r=5, f=5, m=5), date_format, 
+                     to_text=" to ", exact=FALSE, tz=Sys.timezone()) {
   if(is.list(breaks)) {
     breaks <- c(r=breaks[["r"]], f=breaks[["f"]], m=breaks[["m"]])
   } else if(is.vector(breaks) && is.numeric(breaks)) {
@@ -17,6 +19,9 @@ rfm_auto <- function(data, id="id", payment="payment", date="date", breaks=c(r=5
     }
   }
   if(length(breaks) != 3) stop()
+  
+  if(!missing(date_format) && is.character(data[,date]))
+    data[,date] <- strptime(data[,date], format = format, tz = tz)
   
   dots <- list(sprintf("max(%s)", date), ~n(), sprintf("sum(%s)", payment))
   rfm <- data %>% 
@@ -59,9 +64,22 @@ rfm_auto <- function(data, id="id", payment="payment", date="date", breaks=c(r=5
   r_breaks_days <- difftime(max(r_breaks_date), r_breaks_date, units="days")
   r_class_days <- paste(upper_breaks(r_breaks_days), r_breaks_days[-1], sep=to_text)
   
+  rf_table <- table(Recency=r, Frequency=f)
+  fm_table <- table(Frequency=f, Monetary=m)
+  mr_table <- table(Monetary=m, Recency=r)
+  rownames(rf_table) <- r_class_days
+  colnames(rf_table) <- f_class
+  rownames(fm_table) <- f_class
+  colnames(fm_table) <- m_class
+  rownames(mr_table) <- m_class
+  colnames(mr_table) <- r_class_days
+  
   list(rfm=data.frame(rfm, RecencyClass=r, FrequencyClass=f, MonetaryClass=m), 
        breaks=list(recency_breaks=r_breaks, recency_breaks_days=r_breaks_days,
-       frequency_breaks=f_breaks, monetary_breaks=m_breaks),
+                   frequency_breaks=f_breaks, monetary_breaks=m_breaks),
        classes=list(recency_class=r_class, recency_class_days=r_class_days,
-       frequency_class=f_class, monetary_class=m_class))
+                    frequency_class=f_class, monetary_class=m_class),
+       tables=list(recency_frequecy_table=rf_table,
+                   frequency_monetary_table=fm_table,
+                   monetary_recency_table=mr_table))
 }
