@@ -1,0 +1,147 @@
+---
+title: "easyRFM - An easy way to RFM analysis by R"
+author: "Koji MAKIYAMA"
+output: 
+  html_document: 
+    keep_md: true
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE, comment="")
+```
+
+## Overview
+
+About RFM analysis:
+
+- [RFM (customer value) - Wikipedia](http://en.wikipedia.org/wiki/RFM_%28customer_value%29)
+
+> RFM is a method used for analyzing customer value. It is commonly used in database marketing and direct marketing and has received particular attention in retail and professional services industries.
+> 
+> RFM stands for
+>
+> - Recency - How recently did the customer purchase?
+> - Frequency - How often do they purchase?
+> - Monetary Value - How much do they spend?
+
+First, ready transaction data like below:
+
+```{r, echo=FALSE}
+library(easyRFM)
+data <- rfm_generate_data(seed=123)
+```
+
+```{r}
+head(data)
+```
+
+The "id" means user ID, the "payment" means a payment for purchase and the "date" means a purchase date.
+
+Then you can execute RFM analysis by a simple command:
+
+```{r}
+result <- rfm_auto(data)
+```
+
+The result contains three components.
+
+`result$rfm` is which class each user was assigned.
+
+```{r}
+head(result$rfm)
+```
+
+`result$breaks` is the breaks for each classes.
+
+```{r}
+result$breaks
+```
+
+`result$classes` is the ranges for each classes.
+
+```{r}
+result$classes
+```
+
+`result$tables`
+
+```{r}
+result$tables
+```
+
+## How to install
+
+```{r, eval=FALSE}
+install.packages("devtools") # if you have not installed "devtools" package
+devtools::install_github("hoxo-m/easyRFM")
+```
+
+## Try it with sample data
+
+easyRFM package provide `rfm_generate_data()` function towords to generate sample data for `rfm_auto()`:
+
+```{r}
+data <- rfm_generate_data()
+head(data)
+```
+
+Try `rfm_auto()` and look over the result:
+
+```{r}
+result <- rfm_auto(data)
+```
+
+## How to input to rfm_auto()
+
+If your data have different column names from default: "id", "payment" and "date", for example:
+
+```{r, echo=FALSE}
+data <- rfm_generate_data(seed=123)
+colnames(data) <- c("user_id", "payment", "purchase_date")
+```
+
+```{r}
+head(data)
+```
+
+You can indicate the column names:
+
+```{r}
+result <- rfm_auto(data, id="user_id", payment="payment", date="purchase_date")
+```
+
+If your data have different date format from default: "yyyy-mm-dd", for example:
+
+```{r, echo=FALSE}
+library(stringr)
+data <- rfm_generate_data(seed=123)
+data$date <- str_replace_all(data$date, "-", "/")
+```
+
+```{r}
+head(data)
+```
+
+You can indicate date format:
+
+```{r}
+result <- rfm_auto(data, date_format = "%Y/%m/%d")
+```
+
+For more information for date_format, see [Date-time Conversion Functions to and from Character](http://stat.ethz.ch/R-manual/R-patched/library/base/html/strptime.html).
+
+You can use datetime object(POSIXlt or POSIXct) instead of date, for example:
+
+```{r, echo=FALSE}
+library(stringr)
+data <- rfm_generate_data(seed=123, date_type = "POSIXct")
+data$date <- format(data$date, "%Y/%m/%d %H:%M:%S")
+```
+
+```{r}
+head(data)
+```
+
+```{r}
+result <- rfm_auto(data, date_format = "%Y/%m/%d %H:%M:%S")
+```
