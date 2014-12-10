@@ -83,16 +83,8 @@ rfm_auto <- function(data, id="id", payment="payment", date="date",
   get_table <- function(type=c("RF", "FR", "FM", "MF", "MR", "RM"), 
                         R_slice, F_slice, M_slice) {
     type <- match.arg(type)
-    d <- rfm
-    if(!missing(R_slice)) {
-      d <- d %>% filter(RecencyClass %in% R_slice)
-    }
-    if(!missing(F_slice)) {
-      d <- d %>% filter(FrequencyClass %in% F_slice)
-    }
-    if(!missing(M_slice)) {
-      d <- d %>% filter(MonetaryClass %in% M_slice)
-    }
+    d <- get_sliced_rfm(R_slice=R_slice, F_slice=F_slice, M_slice=M_slice)
+    
     r <- cut(d$Recency,   r_breaks, include.lowest=TRUE) %>% as.numeric
     f <- cut(d$Frequency, f_breaks, include.lowest=TRUE) %>% as.numeric
     m <- cut(d$Monetary,  m_breaks, include.lowest=TRUE) %>% as.numeric
@@ -130,10 +122,24 @@ rfm_auto <- function(data, id="id", payment="payment", date="date",
     tbl    
   }
   
+  get_sliced_rfm <- function(R_slice, F_slice, M_slice) {
+    d <- rfm
+    if(!missing(R_slice)) {
+      d <- d %>% filter(RecencyClass %in% R_slice)
+    }
+    if(!missing(F_slice)) {
+      d <- d %>% filter(FrequencyClass %in% F_slice)
+    }
+    if(!missing(M_slice)) {
+      d <- d %>% filter(MonetaryClass %in% M_slice)
+    }
+    d
+  }
+  
   list(rfm=rfm, 
        breaks=list(recency_breaks=r_breaks, recency_breaks_days=r_breaks_days,
                    frequency_breaks=f_breaks, monetary_breaks=m_breaks),
        classes=list(recency_class=r_class, recency_class_days=r_class_days,
                     frequency_class=f_class, monetary_class=m_class),
-       get_table=get_table)
+       get_table=get_table, get_sliced_rfm=get_sliced_rfm)
 }
