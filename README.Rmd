@@ -43,7 +43,7 @@ Then you can execute RFM analysis by a simple command:
 result <- rfm_auto(data)
 ```
 
-The result contains four elements.
+The result contains three elements and one function.
 
 `result$rfm` is which class each user was assigned.
 
@@ -63,10 +63,16 @@ result$breaks
 result$classes
 ```
 
-`result$tables`
+`result$get_table()` is function which creates tables with slicing.
 
 ```{r}
-result$tables
+result$get_table("RF", M_slice=1:3)
+```
+
+If you don't indicate slice, it uses all.
+
+```{r}
+result$get_table("RF")
 ```
 
 ## How to install

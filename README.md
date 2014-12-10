@@ -45,7 +45,7 @@ Then you can execute RFM analysis by a simple command:
 result <- rfm_auto(data)
 ```
 
-The result contains four elements.
+The result contains three elements and one function.
 
 `result$rfm` is which class each user was assigned.
 
@@ -118,15 +118,31 @@ result$classes
 ## [5] "14001 to 38000"
 ```
 
-`result$tables`
+`result$get_table()` is function which creates tables with slicing.
 
 
 ```r
-result$tables
+result$get_table("RF", M_slice=1:3)
 ```
 
 ```
-## $recency_frequecy_table
+##           Frequency
+## Recency      1   2   3 4 to 5 6 to 8
+##   31 to 18 113  30   4      0      0
+##   17 to 11  61  48   6      2      0
+##   10 to 7   43  41  18      1      0
+##   6 to 3    28  40  11      6      0
+##   2 to 0    17  35  15      2      0
+```
+
+If you don't indicate slice, it uses all.
+
+
+```r
+result$get_table("RF")
+```
+
+```
 ##           Frequency
 ## Recency      1   2   3 4 to 5 6 to 8
 ##   31 to 18 120  43   8      6      0
@@ -134,31 +150,6 @@ result$tables
 ##   10 to 7   43  56  42     27      2
 ##   6 to 3    31  56  48     42      6
 ##   2 to 0    18  47  41     34      9
-## 
-## $frequency_monetary_table
-##          Monetary
-## Frequency 120 to 3600 3601 to 6100 6101 to 9100 9101 to 14000
-##    1              147           76           39            13
-##    2               29           77           88            63
-##    3                0           21           33            75
-##    4 to 5           0            1           10            29
-##    6 to 8           0            0            0             1
-##          Monetary
-## Frequency 14001 to 38000
-##    1                   2
-##    2                  17
-##    3                  48
-##    4 to 5             83
-##    6 to 8             16
-## 
-## $monetary_recency_table
-##                 Recency
-## Monetary         31 to 18 17 to 11 10 to 7 6 to 3 2 to 0
-##   120 to 3600          70       38      29     26     13
-##   3601 to 6100         46       47      34     24     24
-##   6101 to 9100         31       32      40     35     32
-##   9101 to 14000        22       46      38     46     29
-##   14001 to 38000        8       26      29     52     51
 ```
 
 ## How to install
