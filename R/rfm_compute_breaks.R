@@ -2,8 +2,19 @@
 #'
 #'@export
 rfm_compute_breaks <- function(values, break_num=5) {
-  step = 1 / break_num
-  breaks <- quantile(values, probs = seq(0, 1, step))
+  breaks <- quantile(values, probs = seq(0, 1, length.out = break_num + 1))
+  if(break_num == 2 && is.integer(values)) {
+    min_value <- min(values)
+    max_value <- max(values)
+    last_breaks <- c(min_value-1, min_value, max_value)
+    for(i in min_value:(max_value-1)) {
+      breaks <- c(min_value-1, i, max_value)
+      tbl <- table(cut(values, breaks))
+      if(tbl[1] > tbl[2]) break
+      last_breaks <- breaks
+    }
+    return(last_breaks)
+  }
   breaks <- unname(breaks)
   if(length(breaks) == length(unique(breaks))) return(breaks)
   min_value <- min(values)
