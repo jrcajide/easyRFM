@@ -23,6 +23,7 @@ rfm_auto <- function(data, id="id", payment="payment", date="date",
   is.Date <- function(x) is(x, "Date")
   is.POSIXlt <- function(x) is(x, "POSIXlt")
   
+  data <- data.frame(data)
   if(!missing(date_format) && is.character(data[,date]))
     data[,date] <- strptime(data[,date], format = date_format, tz = tz) %>% as.POSIXct
   if(is.Date(data[,date]))
