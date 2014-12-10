@@ -66,26 +66,74 @@ rfm_auto <- function(data, id="id", payment="payment", date="date",
   f <- cut(rfm$Frequency, f_breaks, include.lowest=TRUE) %>% as.numeric
   m <- cut(rfm$Monetary,  m_breaks, include.lowest=TRUE) %>% as.numeric
   
+  rfm <- rfm %>% mutate(RecencyClass=r, FrequencyClass=f, MonetaryClass=m) %>% 
+    data.frame
+                 
   r_breaks_date <- as.Date(r_breaks, tz=tz)
   r_breaks_days <- difftime(max(r_breaks_date), r_breaks_date, units="days")
   r_class_days <- paste(upper_breaks(r_breaks_days), r_breaks_days[-1], sep=to_text)
   
   rf_table <- table(Recency=r, Frequency=f)
+  fr_table <- table(Frequency=f, Recency=r)
   fm_table <- table(Frequency=f, Monetary=m)
+  mf_table <- table(Monetary=m, Frequency=f)
   mr_table <- table(Monetary=m, Recency=r)
-  rownames(rf_table) <- r_class_days
-  colnames(rf_table) <- f_class
-  rownames(fm_table) <- f_class
-  colnames(fm_table) <- m_class
-  rownames(mr_table) <- m_class
-  colnames(mr_table) <- r_class_days
+  rm_table <- table(Recency=r, Monetary=m)
   
-  list(rfm=data.frame(rfm, RecencyClass=r, FrequencyClass=f, MonetaryClass=m), 
+  get_table <- function(type=c("RF", "FR", "FM", "MF", "MR", "RM"), 
+                        R_slice, F_slice, M_slice) {
+    type <- match.arg(type)
+    d <- rfm
+    if(!missing(R_slice)) {
+      d <- d %>% filter(RecencyClass %in% R_slice)
+    }
+    if(!missing(F_slice)) {
+      d <- d %>% filter(FrequencyClass %in% F_slice)
+    }
+    if(!missing(M_slice)) {
+      d <- d %>% filter(MonetaryClass %in% M_slice)
+    }
+    r <- cut(d$Recency,   r_breaks, include.lowest=TRUE) %>% as.numeric
+    f <- cut(d$Frequency, f_breaks, include.lowest=TRUE) %>% as.numeric
+    m <- cut(d$Monetary,  m_breaks, include.lowest=TRUE) %>% as.numeric
+    tbl <- switch(type, 
+                  "RF"=table(Recency=r, Frequency=f),
+                  "FR"=table(Frequency=f, Recency=r),
+                  "FM"=table(Frequency=f, Monetary=m),
+                  "MF"=table(Monetary=m, Frequency=f),
+                  "MR"=table(Monetary=m, Recency=r),
+                  "RM"=table(Recency=r, Monetary=m))
+    row_names <- switch(type,
+                        "RF"=r_class_days, "FR"=f_class,
+                        "FM"=f_class,      "MF"=m_class,
+                        "MR"=m_class,      "RM"=r_class_days)
+    col_names <- switch(type,
+                        "RF"=f_class,      "FR"=r_class_days,
+                        "FM"=m_class,      "MF"=f_class,
+                        "MR"=r_class_days, "RM"=m_class)
+    
+    dummy_table <- switch(type,
+                          "RF"=rf_table, "FR"=fr_table,
+                          "FM"=fm_table, "MF"=mf_table,
+                          "MR"=mr_table, "RM"=rm_table)
+    dummy_table[] <- 0
+    
+    for(row_name in rownames(tbl)) {
+      for(col_name in colnames(tbl)) {
+        dummy_table[row_name, col_name] <- tbl[row_name, col_name]
+      }
+    }
+    
+    tbl <- dummy_table
+    rownames(tbl) <- row_names
+    colnames(tbl) <- col_names
+    tbl    
+  }
+  
+  list(rfm=rfm, 
        breaks=list(recency_breaks=r_breaks, recency_breaks_days=r_breaks_days,
                    frequency_breaks=f_breaks, monetary_breaks=m_breaks),
        classes=list(recency_class=r_class, recency_class_days=r_class_days,
                     frequency_class=f_class, monetary_class=m_class),
-       tables=list(recency_frequecy_table=rf_table,
-                   frequency_monetary_table=fm_table,
-                   monetary_recency_table=mr_table))
+       get_table=get_table)
 }
