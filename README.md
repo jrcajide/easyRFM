@@ -47,7 +47,7 @@ result <- rfm_auto(data)
 
 The result contains three elements and one function.
 
-`result$rfm` is which class each user was assigned.
+`result$rfm` is which class each customer was assigned.
 
 
 ```r
