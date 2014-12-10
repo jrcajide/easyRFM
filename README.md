@@ -36,7 +36,7 @@ head(data)
 ## 6  3    8220 2014-12-18
 ```
 
-The "id" means user ID, the "payment" means a payment for purchase and the "date" means a purchase date.
+The "id" means customer ID, the "payment" means a payment for purchase and the "date" means a purchase date.
 
 Then you can execute RFM analysis by a simple command:
 
@@ -122,17 +122,17 @@ result$classes
 
 
 ```r
-result$get_table("RF", M_slice=1:3)
+result$get_table("RF", M_slice=4:5)
 ```
 
 ```
 ##           Frequency
-## Recency      1   2   3 4 to 5 6 to 8
-##   31 to 18 113  30   4      0      0
-##   17 to 11  61  48   6      2      0
-##   10 to 7   43  41  18      1      0
-##   6 to 3    28  40  11      6      0
-##   2 to 0    17  35  15      2      0
+## Recency     1  2  3 4 to 5 6 to 8
+##   31 to 18  7 13  4      6      0
+##   17 to 11  4 24 32     12      0
+##   10 to 7   0 15 24     26      2
+##   6 to 3    3 16 37     36      6
+##   2 to 0    1 12 26     32      9
 ```
 
 If you don't indicate slice, it uses all.
@@ -199,20 +199,20 @@ head(data)
 ```
 
 ```
-##   user_id payment purchase_date
-## 1       1    1710    2014-12-23
-## 2       2    6130    2014-12-31
-## 3       2    2870    2014-12-19
-## 4       2     440    2014-12-27
-## 5       3    2080    2014-12-28
-## 6       3    8220    2014-12-18
+##   customer_id payment purchase_date
+## 1           1    1710    2014-12-23
+## 2           2    6130    2014-12-31
+## 3           2    2870    2014-12-19
+## 4           2     440    2014-12-27
+## 5           3    2080    2014-12-28
+## 6           3    8220    2014-12-18
 ```
 
 You can indicate the column names:
 
 
 ```r
-result <- rfm_auto(data, id="user_id", payment="payment", date="purchase_date")
+result <- rfm_auto(data, id="customer_id", payment="payment", date="purchase_date")
 ```
 
 If your data have different date format from default: "yyyy-mm-dd", for example:
@@ -265,4 +265,31 @@ head(data)
 
 ```r
 result <- rfm_auto(data, date_format = "%Y/%m/%d %H:%M:%S")
+```
+
+## Application
+
+
+```r
+data <- rfm_generate_data(10000, begin="2014-10-01", end="2015-01-01", seed=123)
+result <- rfm_auto(data, breaks=list(r=6, f=5, m=5))
+
+result$get_table("RF", M_slice=4:5)
+```
+
+```
+##           Frequency
+## Recency      1   2   3 4 to 5 6 to 9
+##   92 to 58  55 104  67     19      3
+##   57 to 38  37 174 158     88      4
+##   37 to 25  15 152 220    185     17
+##   24 to 15  17 153 240    222     36
+##   14 to 7    5 134 241    290     41
+##   6 to 0    12 117 273    296     59
+```
+
+```r
+leaved_customers <- result$get_sliced_rfm(R_slice=1:2, F_slice=2:5, M_slice=4:5)
+leaving_customers <- result$get_sliced_rfm(R_slice=3:4, F_slice=4:5, M_slice=4:5)
+good_customers <- result$get_sliced_rfm(R_slice=5:6, F_slice=4:5, M_slice=4:5)
 ```
